@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Clackworks — the paper marble machine</title>
-<meta name="description" content="Clackworks: a cozy paper-craft marble machine idle game. Press, clack, collect sparkles, rebuild bigger.">
+<meta name="description" content="Clackworks: a cozy paper-craft marble machine idle game. Watch it clack, buy upgrades on the fly, rebuild bigger.">
 <meta name="theme-color" content="#e9dcc3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -23,7 +23,8 @@
       <div id="cps">0 / sec</div>
     </div>
     <div class="topRight">
-      <div class="chip" id="gearChip" hidden><span class="gearIcon"></span><b id="gearCount">0</b></div>
+      <button class="chip" id="gearChip" hidden aria-label="Rebuild and Gear Tree"><span class="gearIcon"></span><b id="gearCount">0</b><em id="gearGain"></em><i class="dot" hidden></i></button>
+      <button class="iconBtn" id="trophyBtn" hidden aria-label="Trophies">★<i class="dot" hidden></i></button>
       <button class="iconBtn" id="muteBtn" aria-label="Sound on/off">♪</button>
     </div>
   </header>
@@ -32,38 +33,24 @@
     <canvas id="cv"></canvas>
     <div id="buffs"></div>
     <div id="banner"></div>
+    <div id="stageHint" hidden>tap marbles to pop them ✦</div>
   </section>
 
-  <section id="controls">
-    <div id="leverBox" hidden>
-      <div id="leverSlot"><div id="leverFill"></div></div>
-      <button id="lever" aria-label="Turbo lever"><span class="knob"></span><span class="stick"></span></button>
-      <div class="lbl">TURBO</div>
+  <section id="dock">
+    <div id="boostRow">
+      <button id="turbo" hidden aria-label="Turbo lever"><i id="turboFill"></i><span class="lv"></span><b>TURBO</b><small id="turboTxt"></small></button>
+      <button id="goal"><span class="lbl" id="goalLbl">NEXT</span><span id="goalName">—</span><span class="bar"><i id="goalBar"></i></span><span id="goalEta"></span></button>
+      <button id="autoBtn" hidden aria-label="Auto-Builder on/off"><span class="bot"></span><b>AUTO</b><small id="autoTxt">ON</small></button>
     </div>
-    <div id="pressWrap">
-      <svg id="comboRing" viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="54"/><circle id="comboArc" cx="60" cy="60" r="54"/></svg>
-      <button id="press" aria-label="Press to drop a marble"><span class="cap"><span class="capTxt">PRESS</span></span></button>
-      <div id="comboLbl"></div>
+    <div id="shopTabs">
+      <button data-tab="gadgets" class="on">Gadgets<i class="dot" hidden></i></button>
+      <button data-tab="upgrades">Upgrades<i class="dot" hidden></i></button>
+      <div id="buyMode"><button data-n="1" class="on">×1</button><button data-n="10">×10</button><button data-n="max">MAX</button></div>
     </div>
-    <div id="nextBox">
-      <div class="lbl">NEXT</div>
-      <div id="nextName">—</div>
-      <div class="bar"><i id="nextBar"></i></div>
-      <div id="nextEta"></div>
-    </div>
+    <div id="grid"></div>
   </section>
 
-  <nav id="tabs">
-    <button data-tab="gadgets" class="on">Gadgets<i class="dot" hidden></i></button>
-    <button data-tab="upgrades">Upgrades<i class="dot" hidden></i></button>
-    <button data-tab="gears" id="gearsTab">Rebuild<i class="dot" hidden></i></button>
-    <button data-tab="trophies">Trophies<i class="dot" hidden></i></button>
-  </nav>
-  <section id="sheet">
-    <div id="buyMode"><span>Buy</span><button data-n="1" class="on">×1</button><button data-n="10">×10</button><button data-n="max">MAX</button></div>
-    <div id="list"></div>
-  </section>
-
+  <div id="panel" hidden><div class="pcard"><button class="close" id="panelClose" aria-label="Close">✕</button><div id="panelBody"></div></div></div>
   <div id="pops"></div>
   <div id="toasts"></div>
   <div id="modal" hidden><div class="card" id="modalCard"></div></div>

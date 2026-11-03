@@ -23,7 +23,7 @@ function noise(dur, freq, vol = 0.3, q = 3) {
 }
 export function sfx(name, p = 0) {
   if (!ac || muted) return;
-  const now = performance.now(); const gap = { clack: 45, ding: 120, land: 40 }[name] || 0;
+  const now = performance.now(); const gap = { clack: 45, ding: 120, land: 40, buy: 35, pop: 30, no: 90 }[name] || 0;
   if (gap && now - (last[name] || 0) < gap) return; last[name] = now;
   switch (name) {
     case 'press': tone(180 + p * 40, 0.09, 'triangle', 0.25, 0.5); noise(0.04, 2400, 0.2); tone(520 + p * 70, 0.08, 'sine', 0.12, 1.4, 0.02); break;
@@ -31,7 +31,9 @@ export function sfx(name, p = 0) {
     case 'land': noise(0.05, 1800 + Math.random() * 800, 0.18, 4); break;
     case 'ding': tone(1320, 0.6, 'sine', 0.12); tone(1980, 0.4, 'sine', 0.05); break;
     case 'boing': tone(220, 0.25, 'sine', 0.15, 2.5); break;
-    case 'buy': tone(660, 0.08, 'triangle', 0.2); tone(990, 0.14, 'triangle', 0.18, 1, 0.06); break;
+    case 'buy': { const k = Math.pow(2, Math.min(p, 12) / 12); tone(660 * k, 0.07, 'triangle', 0.2); tone(990 * k, 0.12, 'triangle', 0.16, 1, 0.05); break; }
+    case 'pop': tone(700 + Math.random() * 500, 0.06, 'sine', 0.14, 1.8); break;
+    case 'unlock': [660, 880, 1320].forEach((f, i) => tone(f, 0.16, 'triangle', 0.16, 1, i * 0.05)); break;
     case 'no': tone(160, 0.12, 'square', 0.06, 0.8); break;
     case 'gold': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.25, 'triangle', 0.18, 1, i * 0.06)); noise(0.3, 6000, 0.1, 1); break;
     case 'milestone': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.3, 'square', 0.07, 1, i * 0.08)); break;

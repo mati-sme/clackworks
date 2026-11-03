@@ -1,5 +1,5 @@
 // Clackworks service worker: versioned cache, network-first for the page, cache-first for assets.
-const VERSION = 'clackworks-v1';
+const VERSION = 'clackworks-v2';
 const ASSETS = ['./', 'index.html', 'style.css', 'manifest.webmanifest', 'js/main.js', 'js/econ.js', 'js/render.js', 'js/audio.js',
   'fonts/lilita-one.woff2', 'fonts/nunito-700.woff2', 'fonts/nunito-800.woff2', 'fonts/nunito-900.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'favicon.ico'];

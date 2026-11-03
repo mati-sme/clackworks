@@ -61,7 +61,7 @@ export class Stage {
     this.cv = canvas; this.ctx = canvas.getContext('2d'); this.P = producers;
     this.marbles = []; this.parts = []; this.jar = []; this.owned = producers.map(() => 0); this.gadgetT = {}; this.appear = {};
     this.shakeT = 0; this.shakeA = 0; this.time = 0; this.boost = 0; this.bg = document.createElement('canvas');
-    this.onLand = null; this.onJarFull = null; this.onGoldenMiss = null;
+    this.onLand = null; this.onJarFull = null; this.onGoldenMiss = null; this.jarCap = 20; this.flow = 1;
     this.grain = this.makeGrain();
     this.resize(); addEventListener('resize', () => this.resize());
   }
@@ -69,7 +69,7 @@ export class Stage {
     for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = 90; d.data[i + 1] = 60; d.data[i + 2] = 30; d.data[i + 3] = v < 30 ? 40 : v > 235 ? 18 : 0; } k.putImageData(d, 0, 0); return g; }
   resize() {
     const r = this.cv.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
-    this.W = Math.max(200, r.width); this.H = Math.max(200, r.height); this.dpr = dpr;
+    this.W = Math.max(120, r.width); this.H = Math.max(120, r.height); this.dpr = dpr;
     this.cv.width = this.W * dpr; this.cv.height = this.H * dpr; this.bg.width = this.cv.width; this.bg.height = this.cv.height;
     this.mr = Math.max(7, Math.min(10, this.W / 42));
     this.buildPath(); this.drawBg();
@@ -97,7 +97,8 @@ export class Stage {
     this.jarBox = { x: X(0.07), y: Y(0.82), w: X(0.33), h: Y(0.99) - Y(0.82) };
     const d = this.mr * 2.02, cols = Math.max(4, Math.floor((this.jarBox.w - 8) / d)), rows = Math.max(2, Math.floor((this.jarBox.h - 6) / (d * 0.87)));
     this.slots = []; for (let r = 0; r < rows; r++) for (let c = 0; c < cols - (r % 2); c++) this.slots.push([this.jarBox.x + 4 + this.mr + c * d + (r % 2) * d / 2, this.jarBox.y + this.jarBox.h - 3 - this.mr - r * d * 0.87]);
-    if (this.jar.length > this.slots.length) this.jar.length = this.slots.length;
+    if (this.jar.length > this.jarCap) this.jar.length = this.jarCap;
+    this.jar.forEach((m, i) => { const sl = this.slots[i % this.slots.length]; m.tx = sl[0]; m.ty = sl[1]; m.x = sl[0]; m.y = sl[1]; m.state = 'rest'; });
     // gadget anchors & path triggers
     const sAt = (x, y) => { let b = 0, bd = 1e9; for (let i = 0; i < pts.length; i++) { const dd = (pts[i][0] - x) ** 2 + (pts[i][1] - y) ** 2; if (dd < bd) { bd = dd; b = i; } } return this.ps[b]; };
     this.anchor = {
@@ -105,6 +106,7 @@ export class Stage {
       loop: [X(0.09), Y(0.48), 32], spring: [X(0.92), Y(0.62), 28], kiln: [X(0.62), Y(0.905), 36], polish: [X(0.37), Y(0.075), 26],
       lift: [X(0.87), Y(0.08), 34], comet: [X(0.62), Y(0.05), 30], galaxy: [X(0.5), Y(0.52), 120], dream: [X(0.85), Y(0.905), 40] };
     this.triggers = { bell: sAt(X(0.8), (R[0][3] + R[1][1]) / 2), paint: sAt(X(0.52), Y(0.58)), loop: sAt(X(0.22) - (R[2][1] - R[1][3]) / 2, (R[1][3] + R[2][1]) / 2), spring: sAt(X(0.8), (R[2][3] + R[3][1]) / 2) };
+    this.sAt = sAt;
   }
   setOwned(owned) {
     let changed = false;
@@ -148,10 +150,10 @@ export class Stage {
     c.globalAlpha = 1; c.fillStyle = c.createPattern(this.grain, 'repeat'); c.fillRect(0, 0, W, H);
   }
   spawn(o = {}) {
-    if (this.marbles.length > 70 && !o.golden) return;
-    const m = { s: 0, v: o.v ?? 90 + Math.random() * 30, golden: !!o.golden, value: o.value || 0, color: o.golden ? '#ffd23f' : COLORS[(Math.random() * COLORS.length) | 0],
-      r: o.golden ? this.mr * 1.45 : this.mr * (0.9 + Math.random() * 0.2), rot: 0, state: 'path', x: 0, y: 0, vx: 0, vy: 0, tap: !!o.tap, life: 0, quiet: !!o.quiet };
-    m.x = this.px[0]; m.y = this.py[0]; this.marbles.push(m); return m;
+    if (this.marbles.length > 80 && !o.golden && !o.mini) return;
+    const m = { s: o.s || 0, v: o.v ?? 90 + Math.random() * 30, golden: !!o.golden, mini: !!o.mini, value: o.value || 0, color: o.golden || o.mini ? '#ffd23f' : COLORS[(Math.random() * COLORS.length) | 0],
+      r: o.golden ? this.mr * 1.45 : o.mini ? this.mr * 0.8 : this.mr * (0.9 + Math.random() * 0.2), rot: 0, state: 'path', x: 0, y: 0, vx: 0, vy: 0, tap: !!o.tap, life: 0, quiet: !!o.quiet };
+    const [sx0, sy0] = this.pathAt(m.s); m.x = sx0; m.y = sy0; this.marbles.push(m); return m;
   }
   pathAt(s) { let lo = 0, hi = this.ps.length - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (this.ps[mid] < s) lo = mid + 1; else hi = mid; } const i = Math.max(1, lo); const f = (s - this.ps[i - 1]) / Math.max(1e-6, this.ps[i] - this.ps[i - 1]);
     return [this.px[i - 1] + (this.px[i] - this.px[i - 1]) * f, this.py[i - 1] + (this.py[i] - this.py[i - 1]) * f, (this.py[i] - this.py[i - 1]) / Math.max(1e-6, this.ps[i] - this.ps[i - 1]), (this.px[i] - this.px[i - 1]) / Math.max(1e-6, this.ps[i] - this.ps[i - 1])]; }
@@ -168,6 +170,13 @@ export class Stage {
     for (const m of this.jar) if (m.golden && !m.caught && Math.hypot(m.x - x, m.y - y) < m.r + 30) return m;
     return null;
   }
+  // a regular marble near (x,y) that can be popped by a tap
+  hitMarble(x, y, pad = 22) {
+    let best = null, bd = 1e9;
+    for (const m of this.marbles) { if (m.golden || m.popped) continue; const d = Math.hypot(m.x - x, m.y - y); if (d < m.r + pad && d < bd) { bd = d; best = m; } }
+    return best;
+  }
+  popMarble(m) { m.popped = true; this.burst(m.x, m.y, 'spark', 7, m.color); const i = this.marbles.indexOf(m); if (i >= 0) this.marbles.splice(i, 1); }
   catchGolden(m) { m.caught = true; this.burst(m.x, m.y, 'confetti', 40); this.burst(m.x, m.y, 'spark', 20, '#ffd23f'); this.shake(8);
     this.marbles = this.marbles.filter(q => q !== m); const j = this.jar.indexOf(m); if (j >= 0) this.jar.splice(j, 1); }
   update(dt) {
@@ -178,8 +187,8 @@ export class Stage {
       const m = this.marbles[i]; m.life += dt;
       if (m.state === 'path') {
         const [, , dyds] = this.pathAt(m.s);
-        const top = m.golden ? 260 : 540 * (1 + boost * .5);
-        m.v += (G * dyds - 0.6 * m.v) * dt; m.v = Math.max(m.golden ? 55 : 80, Math.min(top, m.v));
+        const fl = this.flow * (1 + boost * .5), top = m.golden ? 260 : 540 * fl;
+        m.v += (G * dyds * fl - 0.6 * m.v) * dt; m.v = Math.max(m.golden ? 55 : 80 * fl, Math.min(top, m.v));
         const prev = m.s; m.s += m.v * dt; m.rot += m.v * dt / m.r;
         for (const id in this.triggers) { const ts = this.triggers[id]; if (prev < ts && m.s >= ts && this.has(id)) { this.gadgetT[id] = 0; if (id === 'paint' && !m.golden) m.color = COLORS[(Math.random() * COLORS.length) | 0]; if (id === 'spring') m.v += 120; this.onGadget && this.onGadget(id, m); } }
         if (m.s >= this.len) { const [x, y, dy, dx] = this.pathAt(this.len); m.state = 'fall'; m.x = x; m.y = y; m.vx = dx * m.v; m.vy = dy * m.v; continue; }
@@ -188,8 +197,8 @@ export class Stage {
         m.vy += G * dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vx *= 0.99; m.rot += m.vx * dt / m.r;
         const j = this.jarBox; if (m.x < j.x + m.r + 4) { m.x = j.x + m.r + 4; m.vx = Math.abs(m.vx) * .5; }
         if (m.y > j.y) { // into the jar
-          if (this.jar.length >= this.slots.length) { this.onJarFull && this.onJarFull(this.jar.slice()); this.jar.forEach(q => this.burst(q.x, q.y, 'spark', 2, q.color)); this.jar = []; }
-          const slot = this.slots[this.jar.length]; m.state = 'settle'; m.tx = slot[0]; m.ty = slot[1]; m.sv = 0; this.jar.push(m); this.marbles.splice(i, 1);
+          if (this.jar.length >= this.jarCap) { this.onJarFull && this.onJarFull(this.jar.slice()); this.jar.forEach(q => this.burst(q.x, q.y, 'spark', 2, q.color)); this.jar = []; }
+          const slot = this.slots[this.jar.length % this.slots.length]; m.state = 'settle'; m.tx = slot[0]; m.ty = slot[1]; m.sv = 0; this.jar.push(m); this.marbles.splice(i, 1);
           this.onLand && this.onLand(m);
         }
       }
@@ -235,7 +244,7 @@ export class Stage {
     const j = this.jarBox; c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 3; c.beginPath(); rrect(c, j.x, j.y, j.w, j.h, 10); c.stroke();
     c.fillStyle = 'rgba(255,255,255,.28)'; c.beginPath(); rrect(c, j.x + 6, j.y + 6, 7, j.h - 14, 3); c.fill();
     paperFast(c, '#c79b6a', k => rrect(k, j.x - 4, j.y - 6, j.w + 8, 9, 4), 2);
-    const fill = this.jar.length / this.slots.length; paperFast(c, '#fffaf0', k => rrect(k, j.x + j.w * .25, j.y + j.h * .35, j.w * .5, 16, 3), 2);
+    const fill = this.jar.length / this.jarCap; paperFast(c, '#fffaf0', k => rrect(k, j.x + j.w * .25, j.y + j.h * .35, j.w * .5, 16, 3), 2);
     c.fillStyle = INK; c.font = `12px Lilita, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(fill > .8 ? 'ALMOST!' : 'JAR', j.x + j.w / 2, j.y + j.h * .35 + 8.5);
     // particles
     for (const p of this.parts) { const k = 1 - p.life / p.max; c.globalAlpha = Math.min(1, k * 2); c.fillStyle = p.c;
