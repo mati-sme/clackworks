@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Clackworks — the paper marble machine</title>
+<meta name="description" content="Clackworks: a cozy paper-craft marble machine idle game. Press, clack, collect sparkles, rebuild bigger.">
+<meta name="theme-color" content="#e9dcc3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preload" href="fonts/lilita-one.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="ticket" id="bankBox">
+      <div class="bankRow"><span class="spark">✦</span><span id="bank">0</span></div>
+      <div id="cps">0 / sec</div>
+    </div>
+    <div class="topRight">
+      <div class="chip" id="gearChip" hidden><span class="gearIcon"></span><b id="gearCount">0</b></div>
+      <button class="iconBtn" id="muteBtn" aria-label="Sound on/off">♪</button>
+    </div>
+  </header>
+
+  <section id="stage">
+    <canvas id="cv"></canvas>
+    <div id="buffs"></div>
+    <div id="banner"></div>
+  </section>
+
+  <section id="controls">
+    <div id="leverBox" hidden>
+      <div id="leverSlot"><div id="leverFill"></div></div>
+      <button id="lever" aria-label="Turbo lever"><span class="knob"></span><span class="stick"></span></button>
+      <div class="lbl">TURBO</div>
+    </div>
+    <div id="pressWrap">
+      <svg id="comboRing" viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="54"/><circle id="comboArc" cx="60" cy="60" r="54"/></svg>
+      <button id="press" aria-label="Press to drop a marble"><span class="cap"><span class="capTxt">PRESS</span></span></button>
+      <div id="comboLbl"></div>
+    </div>
+    <div id="nextBox">
+      <div class="lbl">NEXT</div>
+      <div id="nextName">—</div>
+      <div class="bar"><i id="nextBar"></i></div>
+      <div id="nextEta"></div>
+    </div>
+  </section>
+
+  <nav id="tabs">
+    <button data-tab="gadgets" class="on">Gadgets<i class="dot" hidden></i></button>
+    <button data-tab="upgrades">Upgrades<i class="dot" hidden></i></button>
+    <button data-tab="gears" id="gearsTab">Rebuild<i class="dot" hidden></i></button>
+    <button data-tab="trophies">Trophies<i class="dot" hidden></i></button>
+  </nav>
+  <section id="sheet">
+    <div id="buyMode"><span>Buy</span><button data-n="1" class="on">×1</button><button data-n="10">×10</button><button data-n="max">MAX</button></div>
+    <div id="list"></div>
+  </section>
+
+  <div id="pops"></div>
+  <div id="toasts"></div>
+  <div id="modal" hidden><div class="card" id="modalCard"></div></div>
+  <div id="flash"></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

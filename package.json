@@ -1,0 +1,7 @@
+{
+  "name": "clackworks",
+  "private": true,
+  "type": "module",
+  "scripts": { "sim": "node tools/sim.mjs", "test": "node test/play.mjs", "icons": "node tools/make-icons.mjs" },
+  "devDependencies": { "puppeteer-core": "^24.0.0" }
+}
